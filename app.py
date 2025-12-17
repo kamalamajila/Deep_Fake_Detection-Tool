@@ -10,15 +10,15 @@ import numpy as np
 from skimage.metrics import normalized_root_mse, peak_signal_noise_ratio, structural_similarity
 import joblib
 
-db_user = "postgres"
-db_password = "Post_Nik18"
-db_host = "localhost"
-db_port = 5432
-db_name = "postgres"
+db_user = os.getenv("DB_USER")
+db_password = os.getenv("DB_PASSWORD")
+db_host = os.getenv("DB_HOST")
+db_port = os.getenv("DB_PORT")
+db_name = os.getenv("DB_NAME")
 
 app = Flask(__name__, template_folder="templates")
 
-app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://{db_user}:{db_password}@{db_host}/{db_name}'
+app.config['SQLALCHEMY_DATABASE_URI'] = (f'postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False 
 app.secret_key = 'detection'
 app.config['SECRET_KEY'] = os.urandom(24)
@@ -33,8 +33,19 @@ db_config = {
     'user': db_user,
     'password': db_password
 }
-connection = psycopg2.connect(host=db_host, user=db_user, password=db_password, database=db_name)
-cursor = connection.cursor()
+
+try:
+    connection = psycopg2.connect(
+        host=db_host,
+        user=db_user,
+        password=db_password,
+        database=db_name,
+        port=db_port
+    )
+    cursor = connection.cursor()
+except:
+    connection = None
+    cursor = None
 
 class User(db.Model):
     __tablename__ = 'users'
